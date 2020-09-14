@@ -11,7 +11,7 @@ jobs:
     - name: FTP-Deploy-Action
       uses: SamKirkland/FTP-Deploy-Action@3.1.1
       with:
-        ftp-server: ftp://lmax.asuscomm.com:14147/nextcloud/apps/easynova/
-        ftp-username: max
+        ftp-server: ftp://w0177355.kasserver.com/apps/easynova/
+        ftp-username: ${{ secrets.FTP_USERNAME }}
         ftp-password: ${{ secrets.FTP_PASSWORD }}
         git-ftp-args: --insecure
