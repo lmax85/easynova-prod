@@ -1,0 +1,14 @@
+/node_modules
+/.idea
+/.vscode
+/vendor
+.env
+.DS_Store
+.phpunit.result.cache
+npm-debug.log
+yarn-error.log
++storage/*.index
+package-lock.json
+yarn.lock
+/cypress/videos/*
+/cypress/screenshots/*
