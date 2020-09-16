@@ -1,12 +1,13 @@
 stages:
-    - deploy
+  - build
 
-deploy:
-    stage: deploy
-    before_script:
-        - apt-get update -qq
-    script:
-        - apt-get install -y -qq lftp
-        - lftp -c "set ftp:ssl-allow no; open -u $USERNAME,$PASSWORD $HOST -p $PORT; mirror -Rnev ./ $PATH --ignore-time --parallel=10 --exclude-glob .git* --exclude .git/"
-    only:
-        - master
+build:
+  stage: build
+  image: ubuntu:18.04
+  script:
+    - echo "start"
+    - apt-get update -qq && apt-get install -y -qq lftp
+    - lftp -c "set ftp:ssl-allow no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST -p $FTP_PORT; mirror -Rnev ./ $FTP_PATH --ignore-time --parallel=10 --exclude-glob .git* --exclude .git/"
+    - echo "end"
+  only:
+    - master
