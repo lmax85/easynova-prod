@@ -5,7 +5,7 @@
     <name>Easynova PDF</name>
     <summary>App for manage files</summary>
     <description><![CDATA[This is a app for Easynova for upload/edit/delete files with Nextcloud API]]></description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <licence>agpl</licence>
     <author mail="support@innovace.com" >Innovace Team</author>
     <namespace>Easynova</namespace>
@@ -17,6 +17,9 @@
     <dependencies>
         <nextcloud min-version="16" max-version="19"/>
     </dependencies>
+    <types>
+       <filesystem />
+     </types>
     <navigations>
         <navigation>
             <name>Easynova</name>
