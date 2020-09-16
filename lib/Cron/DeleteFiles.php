@@ -51,26 +51,12 @@ class DeleteFiles extends TimedJob {
 
         var_dump('backgroundjob DeleteFiles >>> called');
 
-        $qb = $this->db->getQueryBuilder();
-        $qb->select('*')
-            ->from('custom_properties')
-            ->where($qb->expr()->eq('name', $qb->createNamedParameter('time_to_live')));
-        $cursor = $qb->execute();
-        $property = $cursor->fetch();
+        // get not deleted files for checking
+        $files = $this->fileService->getNotDeleteFiles();
 
-        if ($property) {
-            $qb = $this->db->getQueryBuilder();
-            $qb->select('*')
-                ->from('file_property')
-                ->where($qb->expr()->eq('property_id', $qb->createNamedParameter($property['id'])));
-
-            $cursor = $qb->execute();
-            $data = $cursor->fetchAll();
-
-            if (count($data) > 0) {
-                foreach ($data as $file) {
-                    $this->checkForDelete($file);
-                }
+        if (count($files) > 0) {
+            foreach ($files as $file) {
+                $this->checkForDelete($file);
             }
         }
 
@@ -80,14 +66,16 @@ class DeleteFiles extends TimedJob {
     public function checkForDelete($file) {
         $now = new \Datetime();
         $expireDate = new \Datetime($file['created_at']);
-        $period = explode('|', $file['value']);
+        $period = explode('|', $file['property_value']);
 
         if ($period[0] > 0 && in_array($period[1], self::PERIODS)) {
             $expireDate->modify("+{$period[0]} {$period[1]}");
 
             if ($now > $expireDate) {
                 try {
+                    $this->logger->info('DeleteFiles >> checkForDelete >> delete file with id =' . $file['file_id']);
                     $this->fileService->delete($file);
+                    $this->logger->info('======================================================');
                     var_dump('file deleted ' . $file['file_id']);
                 } catch (Exception $e) {
                     var_dump('cant delete file with id = ' . $file['file_id']);

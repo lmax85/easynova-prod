@@ -4,16 +4,27 @@ namespace OCA\Easynova\Service;
 
 use Exception;
 
+use OCP\IUserSession;
+use OCP\ILogger;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 
+use OCA\Easynova\Db\FileEasynova;
+use OCA\Easynova\Db\FileEasynovaMapper;
 use OCA\Easynova\Db\CustomProperty;
 use OCA\Easynova\Db\CustomPropertyMapper;
 use OCA\Easynova\Db\FileProperty;
 use OCA\Easynova\Db\FilePropertyMapper;
 use OCA\Easynova\Storage\EasynovaStorage;
 
+
 class FileService {
+
+	/** @var IUserSession */
+	private $userSession;
+
+	/** @var ILogger */
+	private $logger;
 
 	/** @var CustomPropertyMapper */
 	private $customPropertyMapper;
@@ -24,8 +35,16 @@ class FileService {
 	/** @var EasynovaStorage */
 	private $storage;
 
-	public function __construct(CustomPropertyMapper $customPropertyMapper, FilePropertyMapper $filePropertyMapper, EasynovaStorage $storage) {
+	public function __construct(IUserSession $userSession,
+			ILogger $logger,
+			CustomPropertyMapper $customPropertyMapper,
+			FileEasynovaMapper $fileEasynovaMapper,
+			FilePropertyMapper $filePropertyMapper,
+			EasynovaStorage $storage) {
+		$this->userSession = $userSession;
+		$this->logger = $logger;
 		$this->customPropertyMapper = $customPropertyMapper;
+		$this->fileEasynovaMapper = $fileEasynovaMapper;
 		$this->filePropertyMapper = $filePropertyMapper;
 		$this->storage = $storage;
 	}
@@ -51,6 +70,11 @@ class FileService {
 		return $this->filePropertyMapper->findInfo($fileId);
 	}
 
+	public function getEasynovaInfo($fileId)
+	{
+		return $this->fileEasynovaMapper->find($fileId);
+	}
+
 	public function create($fileId, $propertyId, $value) {
 		$exist = $this->filePropertyMapper->findByFileAndProp($fileId, $propertyId);
 
@@ -71,18 +95,104 @@ class FileService {
 		return $this->filePropertyMapper->insert($fileProperty);
 	}
 
-	public function delete($fileProperty) {
-		try {
-			$deleteFileFromStorage = $this->storage->delete($fileProperty['file_id']);
+	public function saveFileEasynova($fileId, $userId, $fileName)
+	{
+		$exist = $this->fileEasynovaMapper->findByAttributes([
+			'file_id' => $fileId,
+			'user_id' => $userId,
+		]);
 
-			if ($deleteFileFromStorage) {
-				$fileProperty = $this->filePropertyMapper->find($fileProperty['id']);
-				$this->filePropertyMapper->delete($fileProperty);
+		$fileEasnynova = count($exist) > 0
+			? $exist[0]
+			: new FileEasynova();
+
+		$now = new \DateTime();
+		$fileEasnynova->setFileId($fileId);
+		$fileEasnynova->setFileName($fileName);
+		$fileEasnynova->setUserId($userId);
+		$fileEasnynova->setCreatedAt($now->format('Y-m-d H:i:s'));
+
+		if (count($exist) > 0) {
+			return $this->fileEasynovaMapper->update($fileEasnynova);
+		}
+
+		return $this->fileEasynovaMapper->insert($fileEasnynova);
+	}
+
+	public function readFileEasynova($fileId)
+	{
+		// $user = $this->userSession->getUser();
+		// if ($user) {
+		// 	$this->logger->info('FileService >> readFileEasynova | getUID = ' . $user->getUID(), ['app' => 'easynova']);
+		// 	$this->logger->info('FileService >> readFileEasynova | getDisplayName = ' . $user->getDisplayName(), ['app' => 'easynova']);
+		// 	$this->logger->info('FileService >> readFileEasynova | getEMailAddress = ' . $user->getEMailAddress(), ['app' => 'easynova']);
+		// }
+
+		$exist = $this->fileEasynovaMapper->findByAttributes([
+			'file_id' => $fileId
+		]);
+
+		if (count($exist) > 0) {
+			$fileEasnynova = $exist[0];
+
+			if ($fileEasnynova->readedAt === null) {
+				$ip = $this->getIp();
+				$now = new \DateTime();
+				$fileEasnynova->setReadedAt($now->format('Y-m-d H:i:s'));
+				$fileEasnynova->setIp($ip);
+
+				return $this->fileEasynovaMapper->update($fileEasnynova);
+			} else {
+				return $exist[0];
 			}
+		}
+	}
 
-			return $fileProperty;
+	public function deleteFileEasynova($fileId)
+	{
+		$exist = $this->fileEasynovaMapper->findByAttributes([
+			'file_id' => $fileId
+		]);
+
+		if (count($exist) > 0) {
+			$fileEasnynova = $exist[0];
+
+			if ($fileEasnynova->deletedAt === null) {
+				$now = new \DateTime();
+				$fileEasnynova->setDeletedAt($now->format('Y-m-d H:i:s'));
+
+				return $this->fileEasynovaMapper->update($fileEasnynova);
+			} else {
+				return $exist[0];
+			}
+		}
+	}
+
+	public function getNotDeleteFiles()
+	{
+		return $this->fileEasynovaMapper->findNotDeleteFiles();
+	}
+
+	public function delete($file) {
+		try {
+			$deleteFileFromStorage = $this->storage->delete($file['file_id']);
+
+			return true;
 		} catch (Exception $e) {
 			return $e->getMessage();
 		}
+	}
+
+	private function getIp()
+	{
+		if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+			return $_SERVER['HTTP_CLIENT_IP'];
+		} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			return $_SERVER['HTTP_X_FORWARDED_FOR'];
+		} else {
+			return $_SERVER['REMOTE_ADDR'];
+		}
+
+		return 'ip not found';
 	}
 }

@@ -29,15 +29,6 @@ class PropertyService {
 		return $this->customPropertyMapper->findAll();
 	}
 
-	// private function handleException(Exception $e): void {
-	// 	if ($e instanceof DoesNotExistException ||
-	// 		$e instanceof MultipleObjectsReturnedException) {
-	// 		throw new NoteNotFound($e->getMessage());
-	// 	} else {
-	// 		throw $e;
-	// 	}
-	// }
-
 	// public function find($id, $userId) {
 	// 	try {
 	// 		return $this->mapper->find($id, $userId);

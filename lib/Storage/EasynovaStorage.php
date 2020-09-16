@@ -12,6 +12,10 @@ use OCP\Files\NotPermittedException;
 use OCP\Files\IRootFolder;
 use OCP\ILogger;
 use OCP\User;
+use OCP\EventDispatcher\IEventDispatcher;
+
+use OCA\Easynova\Events\FileDeletedEvent;
+use OCA\Easynova\Hooks\FileHooksStatic;
 
 class EasynovaStorage {
 
@@ -40,22 +44,27 @@ class EasynovaStorage {
                                 IRootFolder $rootFolder,
                                 ILogger $logger,
                                 IConfig $config,
-                                User $user) {
+                                User $user,
+                                IEventDispatcher $eventDispatcher) {
         $this->userMountCache = $userMountCache;
         $this->db = $db;
         $this->rootFolder = $rootFolder;
         $this->logger = $logger;
         $this->config = $config;
         $this->user = $user;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
-     * @NoAdminRequired
      * @NoCSRFRequired
      */
-    public function store($file) {
-        $userUID = $this->user->getUser();
-        $userFolder = $this->rootFolder->getUserFolder($userUID);
+    public function store($file, $userUID) {
+        // $userUID = $this->user->getUser();
+        try {
+            $userFolder = $this->rootFolder->getUserFolder(mb_strtolower($userUID));
+        } catch (Exception $e) {
+            throw new NotFoundException('Could not found user with id = ' . $userUID);
+        }
 
         if (!$userFolder->nodeExists(self::INBOX_FOLDER)) {
             try {
@@ -111,13 +120,15 @@ class EasynovaStorage {
     }
 
     /**
-     * @NoAdminRequired
      * @NoCSRFRequired
      */
     public function delete($fileId) {
         try {
             $fileNode = $this->get($fileId);
             $fileNode->delete();
+
+            // call file hook for change row in DB and send request to backend
+            FileHooksStatic::fileDeletedByCronJob($fileId);
 
             return true;
         } catch(NotFoundException $e) {
