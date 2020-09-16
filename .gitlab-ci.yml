@@ -1,12 +1,14 @@
-default:
-  image: ubuntu:18.04
-  before_script:
-    - apt-get update -qy
-    - apt-get install -y lftp
+image: ubuntu:18.04
 
-build:
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  before_script:
+    - apt-get update -qq
   script:
-    # Sync to FTP
+    - apt-get install -y -qq lftp
     - lftp -c "set ftp:ssl-allow no; open -u $USERNAME,$PASSWORD $HOST -p $PORT; mirror -Rnev ./ $PATH --ignore-time --parallel=10 --exclude-glob .git* --exclude .git/"
   only:
     - master
