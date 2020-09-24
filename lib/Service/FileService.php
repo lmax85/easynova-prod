@@ -53,14 +53,14 @@ class FileService {
 		return $this->filePropertyMapper->findAll();
 	}
 
-	public function parse($fileId, $request)
+	public function parse($fileEasynovaId, $request)
 	{
 		$properties = $this->customPropertyMapper->findAll();
 
 		foreach ($properties as $property) {
 			if ($request->getParam($property->name)) {
 				$value = $request->getParam($property->name);
-				$this->create($fileId, $property->id, $value);
+				$this->create($fileEasynovaId, $property->id, $value);
 			}
 		}
 	}
@@ -75,15 +75,15 @@ class FileService {
 		return $this->fileEasynovaMapper->find($fileId);
 	}
 
-	public function create($fileId, $propertyId, $value) {
-		$exist = $this->filePropertyMapper->findByFileAndProp($fileId, $propertyId);
+	public function create($fileEasynovaId, $propertyId, $value) {
+		$exist = $this->filePropertyMapper->findByFileAndProp($fileEasynovaId, $propertyId);
 
 		$fileProperty = count($exist) > 0
 			? $exist[0]
 			: new FileProperty();
 
 		$now = new \DateTime();
-		$fileProperty->setFileId($fileId);
+		$fileProperty->setFileId($fileEasynovaId);
 		$fileProperty->setPropertyId($propertyId);
 		$fileProperty->setValue($value);
 		$fileProperty->setCreatedAt($now->format('Y-m-d H:i:s'));
@@ -121,15 +121,15 @@ class FileService {
 
 	public function readFileEasynova($fileId)
 	{
-		// $user = $this->userSession->getUser();
-		// if ($user) {
-		// 	$this->logger->info('FileService >> readFileEasynova | getUID = ' . $user->getUID(), ['app' => 'easynova']);
-		// 	$this->logger->info('FileService >> readFileEasynova | getDisplayName = ' . $user->getDisplayName(), ['app' => 'easynova']);
-		// 	$this->logger->info('FileService >> readFileEasynova | getEMailAddress = ' . $user->getEMailAddress(), ['app' => 'easynova']);
-		// }
+		$user = $this->userSession->getUser();
+		if (is_null($user)) {
+			return null;
+		}
+		$userId = $user->getUID();
 
 		$exist = $this->fileEasynovaMapper->findByAttributes([
-			'file_id' => $fileId
+			'file_id' => $fileId,
+			'user_id' => $userId
 		]);
 
 		if (count($exist) > 0) {
@@ -143,15 +143,26 @@ class FileService {
 
 				return $this->fileEasynovaMapper->update($fileEasnynova);
 			} else {
-				return $exist[0];
+				return null;
 			}
 		}
+
+		return null;
 	}
 
 	public function deleteFileEasynova($fileId)
 	{
+		$user = $this->userSession->getUser();
+
+		if (is_null($user)) {
+			return null;
+		}
+
+		$userId = $user->getUID();
+
 		$exist = $this->fileEasynovaMapper->findByAttributes([
-			'file_id' => $fileId
+			'file_id' => $fileId,
+			'user_id' => $userId
 		]);
 
 		if (count($exist) > 0) {
@@ -163,9 +174,11 @@ class FileService {
 
 				return $this->fileEasynovaMapper->update($fileEasnynova);
 			} else {
-				return $exist[0];
+				return null;
 			}
 		}
+
+		return null;
 	}
 
 	public function getNotDeleteFiles()
@@ -173,9 +186,9 @@ class FileService {
 		return $this->fileEasynovaMapper->findNotDeleteFiles();
 	}
 
-	public function delete($file) {
+	public function delete($fileEasnynova) {
 		try {
-			$deleteFileFromStorage = $this->storage->delete($file['file_id']);
+			$deleteFileFromStorage = $this->storage->delete($fileEasnynova);
 
 			return true;
 		} catch (Exception $e) {

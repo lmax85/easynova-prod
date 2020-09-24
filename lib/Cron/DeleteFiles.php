@@ -37,8 +37,8 @@ class DeleteFiles extends TimedJob {
                                 ILogger $logger,
                                 FileService $fileService,
                                 EasynovaStorage $storage) {
-        // Run once a day
-        $this->setInterval(5);
+        // Run once every 5 minutes
+        $this->setInterval(5 * 60);
 
         $this->db = $db;
         $this->timeFactory = $timeFactory;
@@ -73,12 +73,12 @@ class DeleteFiles extends TimedJob {
 
             if ($now > $expireDate) {
                 try {
-                    $this->logger->info('DeleteFiles >> checkForDelete >> delete file with id =' . $file['file_id']);
+                    $this->logger->info('CronJob DeleteFiles >> delete file with file_id = ' . $file['id'] . ' user_id = ' . $file['user_id']);
                     $this->fileService->delete($file);
                     $this->logger->info('======================================================');
-                    var_dump('file deleted ' . $file['file_id']);
+                    var_dump('file deleted with file_id = ' . $file['id'] . ' user_id = ' . $file['user_id']);
                 } catch (Exception $e) {
-                    var_dump('cant delete file with id = ' . $file['file_id']);
+                    var_dump('cant delete file with file_id = ' . $file['id'] . ' user_id = ' . $file['user_id']);
                 }
 
             }

@@ -21,13 +21,18 @@ class FileEasynovaMapper extends QBMapper {
      * @throws DoesNotExistException
      */
     public function find(int $id) {
-        /* @var $qb IQueryBuilder */
-        $qb = $this->db->getQueryBuilder();
-        $qb->select('*')
-            ->from('files_easynova')
-            ->where($qb->expr()->eq('file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+        try {
+            /* @var $qb IQueryBuilder */
+            $qb = $this->db->getQueryBuilder();
+            $qb->select('*')
+                ->from('files_easynova')
+                ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
 
-        return $this->findEntity($qb);
+            return $this->findOneQuery($qb);
+        } catch (Exception $e) {
+            throw new Exception("File not found", 1);
+        }
+        
     }
 
     /**
@@ -50,9 +55,11 @@ class FileEasynovaMapper extends QBMapper {
     }
 
     /**
-     * get not delete files with time_to_live prop for cron job
+     * get not deleted files with time_to_live prop for cron job
      * [
-     *     ["file_id": "890",
+     *     [
+     *     "user_id": "test",
+     *     "file_id": "890",
      *     "created_at": "2020-09-16 08:42:01",
      *     "readed_at": null,
      *     "property_id": "41",
@@ -65,14 +72,16 @@ class FileEasynovaMapper extends QBMapper {
     {
         /* @var $qb IQueryBuilder */
         $qb = $this->db->getQueryBuilder();
-        $qb->select('files.file_id as file_id',
+        $qb->select('files.user_id as user_id',
+                    'files.id as id',
+                    'files.file_id as file_id',
                     'files.created_at',
                     'files.readed_at',
                     'file_properties.id as property_id',
                     'file_properties.value as property_value',
                     'properties.name as property_name')
             ->from('files_easynova', 'files')
-            ->join('files', 'file_property', 'file_properties', 'files.file_id = file_properties.file_id')
+            ->join('files', 'file_property', 'file_properties', 'files.id = file_properties.file_id')
             ->join('file_properties', 'custom_properties', 'properties', 'properties.id = file_properties.property_id AND properties.name = "time_to_live"')
             ->where('files.deleted_at is NULL');
 

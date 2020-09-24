@@ -59,9 +59,8 @@ class EasynovaStorage {
      * @NoCSRFRequired
      */
     public function store($file, $userUID) {
-        // $userUID = $this->user->getUser();
         try {
-            $userFolder = $this->rootFolder->getUserFolder(mb_strtolower($userUID));
+            $userFolder = $this->rootFolder->getUserFolder($userUID);
         } catch (Exception $e) {
             throw new NotFoundException('Could not found user with id = ' . $userUID);
         }
@@ -94,17 +93,9 @@ class EasynovaStorage {
      * @return Node
      * @throws NotFoundException
      */
-    public function get($fileId) {
-        $mountPoints = $this->userMountCache->getMountsForFileId($fileId);
-
-        if (empty($mountPoints)) {
-            throw new NotFoundException('Could not get file by id = ' . $fileId);
-        }
-
-        $mountPoint = array_shift($mountPoints);
-
+    public function get($fileId, $userId) {
         try {
-            $userFolder = $this->rootFolder->getUserFolder($mountPoint->getUser()->getUID());
+            $userFolder = $this->rootFolder->getUserFolder($userId);
         } catch (\Exception $e) {
             $this->logger->logException($e, ['level' => ILogger::DEBUG]);
             throw new NotFoundException('Could not get user');
@@ -113,7 +104,7 @@ class EasynovaStorage {
         $nodes = $userFolder->getById($fileId);
 
         if (empty($nodes)) {
-            throw new NotFoundException('File found but have errors');
+            throw new NotFoundException('Could not get file by id = ' . $fileId . ' for user_id = ' . $userId);
         }
 
         return array_shift($nodes);
@@ -122,13 +113,13 @@ class EasynovaStorage {
     /**
      * @NoCSRFRequired
      */
-    public function delete($fileId) {
+    public function delete($fileEasnynova) {
         try {
-            $fileNode = $this->get($fileId);
+            $fileNode = $this->get($fileEasnynova['file_id'], $fileEasnynova['user_id']);
             $fileNode->delete();
 
             // call file hook for change row in DB and send request to backend
-            FileHooksStatic::fileDeletedByCronJob($fileId);
+            FileHooksStatic::fileDeletedByCronJob($fileEasnynova['id']);
 
             return true;
         } catch(NotFoundException $e) {

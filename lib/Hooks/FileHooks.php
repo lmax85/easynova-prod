@@ -39,7 +39,7 @@ class FileHooks {
 
                 // need to check - because it hook call on all files
                 if (!is_null($fileEasynova)) {
-                    $this->logger->info('FileHooks >> fileReaded | id = ' . $node->getId() . ' | name = ' . $node->getName(), ['app' => 'easynova']);
+                    $this->logger->info('FileHooks >> fileReaded | id = ' . $fileEasynova->id . ' | name = ' . $fileEasynova->fileName, ['app' => 'easynova']);
                     $this->sendRequestService->sendFileReaded($fileEasynova);
                 }
             } catch (Exception $e) {
@@ -68,7 +68,7 @@ class FileHooks {
 
                 // need to check - because it hook call on all files
                 if (!is_null($fileEasynova)) {
-                    $this->logger->info('FileHooks >> fileDeleted | id = ' . $node->getId() . ' | name = ' . $node->getName(), ['app' => 'easynova']);
+                    $this->logger->info('FileHooks >> fileDeleted | id = ' . $fileEasynova->id . ' | name = ' . $fileEasynova->fileName, ['app' => 'easynova']);
                     $this->sendRequestService->sendFileDeleted($fileEasynova);
                 }
             } catch (Exception $e) {
@@ -92,7 +92,7 @@ class FileHooks {
             $fileEasynova = $this->fileService->deleteFileEasynova($fileId);
 
             if (!is_null($fileEasynova)) {
-                $this->logger->info('FileHooks >> fileDeletedByCronJob | id = ' . $fileEasynova->fileId, ['app' => 'easynova']);
+                $this->logger->info('FileHooks >> fileDeletedByCronJob | id = ' . $fileEasynova->id, ['app' => 'easynova']);
                 $this->sendRequestService->sendFileDeleted($fileEasynova);
             }
         } catch (Exception $e) {

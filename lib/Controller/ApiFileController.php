@@ -32,15 +32,10 @@ use OCA\Easynova\Storage\EasynovaStorage;
      */
     public function getFileInfo($fileId) {
         try {
-            $fileEasynova = $this->fileService->getEasynovaInfo($fileId);
-            $properties = $this->fileService->getInfo($fileId);
+            $info = $this->fileService->getEasynovaInfo($fileId);
+            $info['properties'] = $this->fileService->getInfo($fileId);
 
-            return new JSONResponse([
-                'id' => $fileId,
-                // 'name' => $file->getName(),
-                'easynova_info' => $fileEasynova,
-                'properties' => $properties,
-            ], 200);
+            return new JSONResponse($info, 200);
         } catch (NotFoundException $e) {
             return new JSONResponse(['error' => $e->getMessage(), 'message' => 'error when obtain file info.'], 500);
         } catch (Exception $e) {
@@ -60,11 +55,11 @@ use OCA\Easynova\Storage\EasynovaStorage;
             try {
                 $fileId = $this->storage->store($file, $userId);
                 // save main easynova file info
-                $this->fileService->saveFileEasynova($fileId, $userId, $file['name']);
+                $fileEasynova = $this->fileService->saveFileEasynova($fileId, $userId, $file['name']);
                 // insert time_to_live to DB table file_property
-                $this->fileService->parse($fileId, $this->request);
+                $this->fileService->parse($fileEasynova->id, $this->request);
 
-                return new JSONResponse(['message' => 'file stored and properties added.', 'file_id' => $fileId], 200);
+                return new JSONResponse(['message' => 'file stored and properties added.', 'file_id' => $fileEasynova->id], 200);
             } catch (NotPermittedException $e) {
                 return new JSONResponse(['error' => $e->getMessage(), 'message' => 'Haven\'t permissions for store file.'], 500);
             } catch (Exception $e) {
