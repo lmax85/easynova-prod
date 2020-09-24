@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Middleware;
 
 use OCP\ILogger;
 
@@ -17,9 +18,9 @@ class SendRequestService {
     /** @var ClientService */
     private $httpClient;
 
-    const API_URL_READ = 'https://wiki.siecom.de:8443/display/ENPUB/nextcloudDocumentRead';
-    const USERNAME = 'easynova.partner';
-    const PASSWORD = '2RQ9yk258pXq';
+    const API_URL_READ = 'https://develop.easynova.de:9443/CoreService/CoreWebService.svc/nextcloudDocumentRead';
+    const USERNAME = 'nextcloud';
+    const PASSWORD = 'SFVeaTaEqS3hN8cCth0uncRt2c2mBTGPxncXPPsVVCs=';
 
     public function __construct(ILogger $logger) {
         $this->logger = $logger;
@@ -29,20 +30,37 @@ class SendRequestService {
     {
         try {
             $url = self::API_URL_READ;
-            $client = new Client();
-            $response = $client->request('POST', $url, [
+            $client = new Client([
                 'verify' => false,
-                'auth' => [self::USERNAME, self::PASSWORD],
-                'json' => [
-                    // back end params
-                    'documentId' => $file->fileId,
-                    'userId' => $file->userId,
-                    'opened' => true,
-                    'timestamp' => $file->readedAt,
-                    'ip' => $file->ip,
-                ]
+                'headers' => [ 'Content-Type' => 'application/json' ],
+                'auth' => [self::USERNAME, self::PASSWORD]
             ]);
+
+            // // Grab the client's handler instance.
+            // $clientHandler = $client->getConfig('handler');
+            // $log = $this->logger;
+            // // Create a middleware that echoes parts of the request.
+            // $tapMiddleware = Middleware::tap(function ($request) use ($log) {
+            //     $log->info('Content-Type - ' . $request->getHeaderLine('Content-Type'));
+            //     // application/json
+            //     $log->info('request body - ' . $request->getBody());
+            //     // {"foo":"bar"}
+            // });
+
+            $response = $client->request('POST', $url, [
+                'json'    => [
+                    'documentId' => $file->id,
+                    'timestamp' => "/Date(" . strtotime($file->readedAt) . ")/", // /Date(1599473334000+0200)/
+                    'ipAddress' => $file->ip
+                ],
+                // 'handler' => $tapMiddleware($clientHandler)
+            ]);
+            $body = $response->getBody();
             $this->logger->info('SendRequestService >> sendFileReaded called - request to backend succefull', ['app' => 'Easynova']);
+            $this->logger->info('url: ' . $url);
+            $this->logger->info('status: ' . $response->getStatusCode());
+            $this->logger->info('body: ' . $body);
+            $this->logger->info('======================================================');
         } catch (ClientException $e) {
             $this->logger->info('SendRequestService >> ClientException: ' . $e->getMessage(), ['app' => 'Easynova']);
         } catch (RequestException $e) {
