@@ -17,7 +17,9 @@ class SendRequestService {
     /** @var ClientService */
     private $httpClient;
 
-    const API_URL = 'https://jsonplaceholder.typicode.com';
+    const API_URL_READ = 'https://wiki.siecom.de:8443/display/ENPUB/nextcloudDocumentRead';
+    const USERNAME = 'easynova.partner';
+    const PASSWORD = '2RQ9yk258pXq';
 
     public function __construct(ILogger $logger) {
         $this->logger = $logger;
@@ -26,20 +28,18 @@ class SendRequestService {
     public function sendFileReaded($file)
     {
         try {
-            $url = self::API_URL . '/posts';
+            $url = self::API_URL_READ;
             $client = new Client();
             $response = $client->request('POST', $url, [
+                'verify' => false,
+                'auth' => [self::USERNAME, self::PASSWORD],
                 'json' => [
                     // back end params
-                    'file_id' => $file->fileId,
+                    'documentId' => $file->fileId,
+                    'userId' => $file->userId,
                     'opened' => true,
-                    'opened_at' => $file->readedAt,
+                    'timestamp' => $file->readedAt,
                     'ip' => $file->ip,
-
-                    // test params for fake api
-                    'title' => $file->fileId,
-                    'body' => 'ip = ' . $file->ip . ', readed_at = ' . $file->readedAt,
-                    'userId' => 123
                 ]
             ]);
             $this->logger->info('SendRequestService >> sendFileReaded called - request to backend succefull', ['app' => 'Easynova']);
@@ -56,31 +56,28 @@ class SendRequestService {
 
     public function sendFileDeleted($file)
     {
-        try {
-            $url = self::API_URL . '/posts';
-            $client = new Client();
-            $response = $client->request('POST', $url, [
-                'json' => [
-                    // back end params
-                    'file_id' => $file->fileId,
-                    'deleted' => true,
-                    'deleted_at' => $file->deletedAt,
-
-                    // test params for fake api
-                    'title' => $file->fileId,
-                    'body' => 'ip = ' . $file->ip . ', readed_at = ' . $file->deletedAt,
-                    'userId' => 123
-                ]
-            ]);
-            $this->logger->info('SendRequestService >> sendFileDeleted called - request to backend succefull', ['app' => 'Easynova']);
-        } catch (ClientException $e) {
-            $this->logger->info('SendRequestService >> ClientException: ' . $e->getMessage(), ['app' => 'Easynova']);
-        } catch (RequestException $e) {
-            $this->logger->info('SendRequestService >> RequestException: ' . $e->getMessage(), ['app' => 'Easynova']);
-        } catch (BadResponseException $e) {
-            $this->logger->info('SendRequestService >> BadResponseException: ' . $e->getMessage(), ['app' => 'Easynova']);
-        } catch (\Exception $e) {
-            $this->logger->info('SendRequestService >> Exception: ' . $e->getMessage(), ['app' => 'Easynova']);
-        }
+        // try {
+        //     $url = self::API_URL_DELETED;
+        //     $client = new Client();
+        //     $response = $client->request('POST', $url, [
+        //         'verify' => false,
+        //         'auth' => [self::USERNAME, self::PASSWORD],
+        //         'json' => [
+        //             // back end params
+        //             'documentId' => $file->fileId,
+        //             'userId' => $file->userId,
+        //             'deleted_at' => $file->deletedAt,
+        //         ]
+        //     ]);
+        //     $this->logger->info('SendRequestService >> sendFileDeleted called - request to backend succefull', ['app' => 'Easynova']);
+        // } catch (ClientException $e) {
+        //     $this->logger->info('SendRequestService >> ClientException: ' . $e->getMessage(), ['app' => 'Easynova']);
+        // } catch (RequestException $e) {
+        //     $this->logger->info('SendRequestService >> RequestException: ' . $e->getMessage(), ['app' => 'Easynova']);
+        // } catch (BadResponseException $e) {
+        //     $this->logger->info('SendRequestService >> BadResponseException: ' . $e->getMessage(), ['app' => 'Easynova']);
+        // } catch (\Exception $e) {
+        //     $this->logger->info('SendRequestService >> Exception: ' . $e->getMessage(), ['app' => 'Easynova']);
+        // }
     }
 }
