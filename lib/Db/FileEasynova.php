@@ -16,6 +16,7 @@ class FileEasynova extends Entity implements JsonSerializable {
 	public $readedAt;
 	public $createdAt;
 	public $deletedAt;
+	public $paperFlag;
 
 	public function jsonSerialize(): array {
 		return [
@@ -28,6 +29,7 @@ class FileEasynova extends Entity implements JsonSerializable {
 			'readed_at' => $this->readedAt,
 			'created_at' => $this->createdAt,
 			'deleted_at' => $this->deletedAt,
+			'paper_flag' => $this->paperFlag,
 		];
 	}
 }

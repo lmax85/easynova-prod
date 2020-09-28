@@ -101,4 +101,17 @@ class FileEasynovaMapper extends QBMapper {
 
         return $this->findEntities($qb);
     }
+
+    /**
+     * @return array
+     */
+    public function getUserFiles($userId): array {
+        /* @var $qb IQueryBuilder */
+        $qb = $this->db->getQueryBuilder();
+        $qb->select('*')
+            ->from('files_easynova')
+            ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
+
+        return $this->findEntities($qb);
+    }
 }
