@@ -9,7 +9,7 @@ build:
     - apt-get update -qq && apt-get install -y -qq lftp
     - npm ci
     - npm run build
-    - lftp -c "set ftp:ssl-allow no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST -p $FTP_PORT; mirror -Rnev ./ $FTP_PATH --ignore-time --parallel=10 --exclude-glob .git* --exclude .git/ node_modules/"
+    - lftp -c "set ftp:ssl-allow no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST -p $FTP_PORT; mirror -Rnev ./ $FTP_PATH --ignore-time --parallel=10 --exclude-glob .git* --exclude .git/ --exclude node_modules/"
     - echo "end"
   only:
     - master
