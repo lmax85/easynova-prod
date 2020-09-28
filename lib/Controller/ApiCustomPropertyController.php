@@ -33,7 +33,6 @@ use OCA\Easynova\Service\PropertyService;
     // $data['env'] = $this->request->getEnv('SOME_VAR');  // $_ENV['SOME_VAR']
 
  	/**
- 	 * @NoAdminRequired
  	 * @NoCSRFRequired
  	 */
  	public function createProperty() {
@@ -57,7 +56,6 @@ use OCA\Easynova\Service\PropertyService;
  	}
 
     /**
-     * @NoAdminRequired
      * @NoCSRFRequired
      */
     public function store()
