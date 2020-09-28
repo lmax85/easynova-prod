@@ -43,13 +43,13 @@ export const getEndpoint = () => {
 
 	switch (process.env.NODE_ENV) {
 	case 'production':
-		endpoint = 'https://portal.easynova.de/apps/easynova/'
+		endpoint = 'https://portal.easynova.de/index.php/apps/easynova/'
 		break
 	case 'development':
 		endpoint = 'http://localhost:8080/apps/easynova/'
 		break
 	default:
-		endpoint = 'http://localhost:8080/apps/easynova/'
+		endpoint = 'https://portal.easynova.de/index.php/apps/easynova/'
 		break
 	}
 
