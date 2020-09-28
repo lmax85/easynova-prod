@@ -3,12 +3,10 @@ stages:
 
 build:
   stage: build
-  image: ubuntu:18.04
+  image: node:12.18.4
   script:
     - echo "start"
     - apt-get update -qq && apt-get install -y -qq lftp
-    - curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-    - apt-get install -y nodejs
     - npm ci
     - npm run build
     - lftp -c "set ftp:ssl-allow no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST -p $FTP_PORT; mirror -Rnev ./ $FTP_PATH --ignore-time --parallel=10 --exclude-glob .git* --exclude .git/"
