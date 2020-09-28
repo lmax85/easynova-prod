@@ -208,4 +208,28 @@ class FileService {
 
 		return 'ip not found';
 	}
+
+	// api for work with users files...
+	public function getEasynovaFilesByUserId($userId)
+	{
+		return $this->fileEasynovaMapper->getUserFiles($userId);
+	}
+
+	public function updateEasynovaFileField($fileId, $userId, $paperFlag)
+	{
+		$exist = $this->fileEasynovaMapper->findByAttributes([
+			'file_id' => $fileId,
+			'user_id' => $userId
+		]);
+
+		if (count($exist) > 0) {
+			$fileEasnynova = $exist[0];
+			$fileEasnynova->setPaperFlag($paperFlag === true ? 1 : 0);
+
+			return $this->fileEasynovaMapper->update($fileEasnynova);
+		}
+
+		return null;
+	}
+
 }
