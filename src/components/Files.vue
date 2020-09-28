@@ -1,10 +1,6 @@
 <template>
 	<div>
-		<h2>files here:</h2>
-		<el-table
-			:loading="loading"
-			:data="files"
-			style="width: 100%">
+		<el-table :loading="loading" :data="files">
 			<el-table-column
 				label="Id"
 				prop="id" />
@@ -16,7 +12,8 @@
 				prop="created_at" />
 			<el-table-column label="Need paper duplicate doc?">
 				<template slot-scope="scope">
-					<el-checkbox :value="scope.row.paper_flag ? true : false" @change="updateHandler($event, scope.row)"> Need paper doc
+					<el-checkbox :value="scope.row.paper_flag ? true : false" @change="updateHandler($event, scope.row)">
+						Need paper doc
 					</el-checkbox>
 				</template>
 			</el-table-column>
