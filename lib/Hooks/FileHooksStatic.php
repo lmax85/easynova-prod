@@ -37,4 +37,12 @@ class FileHooksStatic {
     public static function fileDeletedByCronJob($fileId) {
         self::getHooks()->fileDeletedByCronJob($fileId);
     }
+
+    /**
+     * Update file from user hook events
+     * @param {FileEasynova} $file
+     */
+    public static function fileUpdatedByUser($file) {
+        self::getHooks()->fileUpdatedByUser($file);
+    }
 }

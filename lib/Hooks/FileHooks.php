@@ -99,4 +99,19 @@ class FileHooks {
             $this->logger->error('Error in fileDeletedByCronJob hook call...');
         }
     }
+
+    /**
+     * Hook when file updated by user - changed paper_flag
+     * 1. send http request to Easynova backend
+     * @param  {FileEasynovaMapper} $file [file]
+     * @return void
+     */
+    public function fileUpdatedByUser($file)
+    {
+        try {
+            $this->sendRequestService->sendFileUpdated($file);
+        } catch (Exception $e) {
+            $this->logger->error('Error in fileUpdatedByUser hook call...');
+        }
+    }
 }

@@ -12,6 +12,7 @@ use OCP\Files\NotPermittedException;
 
 use OCA\Easynova\Service\FileService;
 use OCA\Easynova\Storage\EasynovaStorage;
+use OCA\Easynova\Hooks\FileHooksStatic;
 
  class ApiUserFileController extends Controller {
 
@@ -69,7 +70,8 @@ use OCA\Easynova\Storage\EasynovaStorage;
             }
 
             $userId = $user->getUID();
-            $files = $this->fileService->updateEasynovaFileField($file_id, $userId, $paper_flag);
+            $file = $this->fileService->updateEasynovaFileField($file_id, $userId, $paper_flag);
+            FileHooksStatic::fileUpdatedByUser($file);
 
             return new JSONResponse(['success' => true, 'message' => 'file updated successfully'], 200);
         } catch (Exception $e) {

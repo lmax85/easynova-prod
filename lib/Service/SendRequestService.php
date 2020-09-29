@@ -18,7 +18,7 @@ class SendRequestService {
     /** @var ClientService */
     private $httpClient;
 
-    const API_URL_READ = 'https://develop.easynova.de:9443/CoreService/CoreWebService.svc/nextcloudDocumentRead';
+    const API_URL = 'https://develop.easynova.de:9443/CoreService/CoreWebService.svc';
     const USERNAME = 'nextcloud';
     const PASSWORD = 'SFVeaTaEqS3hN8cCth0uncRt2c2mBTGPxncXPPsVVCs=';
 
@@ -29,7 +29,7 @@ class SendRequestService {
     public function sendFileReaded($file)
     {
         try {
-            $url = self::API_URL_READ;
+            $url = self::API_URL . '/nextcloudDocumentRead';
             $client = new Client([
                 'verify' => false,
                 'headers' => [ 'Content-Type' => 'application/json' ],
@@ -72,10 +72,43 @@ class SendRequestService {
         }
     }
 
+    public function sendFileUpdated($file)
+    {
+        try {
+            $url = self::API_URL . '/nextcloudDocumentRead';
+            $client = new Client([
+                'verify' => false,
+                'headers' => [ 'Content-Type' => 'application/json' ],
+                'auth' => [self::USERNAME, self::PASSWORD]
+            ]);
+
+            $response = $client->request('POST', $url, [
+                'json'    => [
+                    'documentId' => $file->id,
+                    'paper_flag' => $file->paperFlag
+                ],
+            ]);
+            $body = $response->getBody();
+            $this->logger->info('SendRequestService >> sendFileUpdated called - request to backend succefull', ['app' => 'Easynova']);
+            $this->logger->info('url: ' . $url, ['app' => 'Easynova']);
+            $this->logger->info('status: ' . $response->getStatusCode(), ['app' => 'Easynova']);
+            $this->logger->info('body: ' . $body, ['app' => 'Easynova']);
+            $this->logger->info('======================================================');
+        } catch (ClientException $e) {
+            $this->logger->info('SendRequestService >> ClientException: ' . $e->getMessage(), ['app' => 'Easynova']);
+        } catch (RequestException $e) {
+            $this->logger->info('SendRequestService >> RequestException: ' . $e->getMessage(), ['app' => 'Easynova']);
+        } catch (BadResponseException $e) {
+            $this->logger->info('SendRequestService >> BadResponseException: ' . $e->getMessage(), ['app' => 'Easynova']);
+        } catch (\Exception $e) {
+            $this->logger->info('SendRequestService >> Exception: ' . $e->getMessage(), ['app' => 'Easynova']);
+        }
+    }
+
     public function sendFileDeleted($file)
     {
         // try {
-        //     $url = self::API_URL_DELETED;
+        //     $url = self::API_URL . '/nextcloudDocumentRead';
         //     $client = new Client();
         //     $response = $client->request('POST', $url, [
         //         'verify' => false,
