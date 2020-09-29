@@ -29,7 +29,7 @@ class FileEasynova extends Entity implements JsonSerializable {
 			'readed_at' => $this->readedAt,
 			'created_at' => $this->createdAt,
 			'deleted_at' => $this->deletedAt,
-			'paper_flag' => $this->paperFlag,
+			'paper_flag' => (boolean) $this->paperFlag,
 		];
 	}
 }
